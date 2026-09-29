@@ -1,10 +1,12 @@
-import subprocess
+from typing import Literal
 
 import discord
 from discord.ext import commands
 import dotenv
 import os
 import asyncio
+from mcstatus import JavaServer
+import a2s
 
 
 
@@ -28,6 +30,9 @@ def main() -> None:
     dotenv.load_dotenv()
     TOKEN = os.getenv("TOKEN")
 
+    
+
+
     intents = discord.Intents.default()
     intents.message_content = True
 
@@ -45,17 +50,61 @@ def main() -> None:
             return
 
     @client.tree.command(name="status", description="Check server status")
-    async def status(interaction: discord.Interaction):
-        # 3. Discord verlangt innerhalb von 3 Sekunden eine Antwort
-
+    async def status(interaction: discord.Interaction, game: Literal["Minecraft", "Valheim"]):
         await interaction.response.defer()
 
-        if await run("ping -c 1 192.168.178.56") != 0:
-            await interaction.followup.send("🔴 Server läuft NICHT!")
+        if game == "Minecraft":
+            server = JavaServer("192.168.178.56")
+            try:
+                status = await server.async_status()
+
+                embed = discord.Embed(
+                    title="⛏️ Minecraft Server Status",
+                    description=f"{status.description}",
+                    color=discord.Color.green()
+                )
+            
+                embed.add_field(name="👥 Spieler", value=f"{status.players.online} / {status.players.max}", inline=True)
+                embed.add_field(name="⚙️ ModPack", value=f"{status.motd.raw}", inline=True)
+
+            except Exception as e:
+
+                embed = discord.Embed(
+                        title="⛏️ Minecraft Server Status",
+                        description=f"Server nicht ereichbar",
+                        color=discord.Color.red()
+                )
+
+            await interaction.followup.send(embed=embed)
             return
-                
-        await interaction.followup.send("🟢 Server läuft!")
-        return
+
+        elif game == "Valheim":
+            try:
+                info = await a2s.ainfo(("192.168.178.56", 2457), timeout=3.0)  # type: ignore
+
+                embed = discord.Embed(
+                    title="⚔️ Valheim Server Status",
+                    description=f"**{info.server_name}**",
+                    color=discord.Color.green()
+                )
+                embed.add_field(name="👥 Spieler", value=f"{info.player_count} / {info.max_players}", inline=True)
+                embed.add_field(name="🗺️ Welt", value=f"{info.map_name}", inline=True)
+
+                print(info)
+
+            except Exception as e:
+                print(f"Valheim Status Error: {repr(e)}")
+
+                embed = discord.Embed(
+                    title="⚔️ Valheim Server Status",
+                    description="Server nicht erreichbar",
+                    color=discord.Color.red()
+                )
+
+
+            await interaction.followup.send(embed=embed)
+            return
+            
         
     if TOKEN != None:
         client.run(TOKEN)
