@@ -1,5 +1,5 @@
+import logging
 from typing import Literal
-
 import discord
 from discord.ext import commands
 import dotenv
@@ -7,6 +7,8 @@ import os
 import asyncio
 from mcstatus import JavaServer
 import a2s
+from .logger import logger
+
 
 
 async def run(cmd):
@@ -17,24 +19,27 @@ async def run(cmd):
 
     stdout, stderr = await proc.communicate()
 
-    print(f'[{cmd!r} exited with {proc.returncode}]')
+    logger.info('[%r exited with %s]', cmd, proc.returncode)
     if stdout:
-        print(f'[stdout]\n{stdout.decode()}')
+        logger.info('[stdout] %s', stdout.decode())
     if stderr:
-        print(f'[stderr]\n{stderr.decode()}')
+        logger.error('[stderr] %s', stderr.decode())
     return proc.returncode
 
 
 def main() -> None:
+    # Enviromenrt variablen holen
+    logger = logging.getLogger(__name__)
     dotenv.load_dotenv()
+
     TOKEN = os.getenv("TOKEN")
     if TOKEN is None:
-        print("Error: Discord Token not found in environment variables.")
+        logger.error("Discord Token not found in environment variables.")
         return
     
     HOST_IP = os.getenv("HOST_IP")
     if HOST_IP is None:
-        print("Error: Host IP not found in environment variables.")
+        logger.error("Host IP not found in environment variables.")
         return
 
     
@@ -47,9 +52,9 @@ def main() -> None:
 
     @client.event
     async def on_ready():
-        print(f'We have logged in as {client.user}')
+        logger.info('We have logged in as %s', client.user)
         await client.tree.sync()
-        print("Slash-Commands erfolgreich synchronisiert! 🔄")
+        logger.info("Slash-Commands erfolgreich synchronisiert!")
 
     @client.event
     async def on_message(message):
@@ -72,10 +77,8 @@ def main() -> None:
                 embed.add_field(name="📡 Ping", value=f"{info.ping * 1000:.0f} ms", inline=True)
                 embed.add_field(name="🔒 Passwortschutz", value="Ja" if info.password_protected else "Nein", inline=True)
 
-                print(f"\n\nValheim Status:\n{info}\n\n")
-
             except Exception as e:
-                print(f"Valheim Status Error: {repr(e)}")
+                logger.error("Valheim Status Error: %s", repr(e))
 
                 embed = discord.Embed(
                     title="⚔️ Valheim Server Status",
@@ -88,7 +91,7 @@ def main() -> None:
             server = JavaServer(HOST_IP)
             try:
                 status = await server.async_status()
-                print(f"\n\ncheck_mcserver_status:\n{status}ß\n\n")
+
 
                 modpack = status.raw.get("betterStatus", {})
                 modpack_name = modpack.get("name", status.motd.raw)
@@ -107,7 +110,7 @@ def main() -> None:
                 embed.add_field(name="📡 Latenz", value=f"{status.latency:.0f} ms", inline=True)
 
             except Exception as e:
-
+                logger.error("Minecraft Status Error: %s", repr(e))
                 embed = discord.Embed(
                         title="⛏️ Minecraft Server Status",
                         description=f"Server nicht ereichbar",
@@ -119,35 +122,38 @@ def main() -> None:
 
     @client.tree.command(name="status", description="Check server status")
     async def status(interaction: discord.Interaction, game: Literal["all","Minecraft", "Valheim"]):
-        
-        try:
-            await interaction.response.defer()
-        except discord.NotFound:
-            print("Interaction ist abgelaufen oder unbekannt.")
-            return
-
+        await interaction.response.defer()
         embeds = []
 
         if game == "Minecraft" or game == "all":
             embeds.append(await  check_mc_server_status())
-            print("Minecraft status command executed")
-        if game == "Valheim" or game == "all":
-            embeds.append(await check_valheim_server_status())
-            print("Valheim status command executed")
+            logger.info("Minecraft status command executed")
 
-        print(f"Anzahl Embeds: {len(embeds)}")
-        print(f"Embed-Titel: {[embed.title for embed in embeds]}")
+            if game == "all":
+                logger.info("Minecraft embed added to embeds list and moving to Valheim status check")
+
+
+        if game == "Valheim" or game == "all":
+            logger.info("Checking Valheim server status...")
+            embeds.append(await check_valheim_server_status())
+            logger.info("Valheim status command executed")
+            if game == "all":
+                logger.info("Valheim status command executed after Minecraft status check")
+
+
+        logger.info("Anzahl Embeds: %s", len(embeds))
+        logger.info("Embed-Titel: %s", [embed.title for embed in embeds])
 
         try:
             await interaction.followup.send(embeds=embeds)
         except Exception as error:
-            print(f"Fehler beim Senden der Embeds: {error!r}")
-        print("status command executed")
+            logger.error(f"Fehler beim Senden der Embeds: {error!r}")
+        logger.info("status command executed")
 
             
         
     if TOKEN != None:
-        client.run(TOKEN)
+        client.run(TOKEN, log_handler=None)
 
 
 
