@@ -37,9 +37,34 @@ def main() -> None:
         logger.error("Discord Token not found in environment variables.")
         return
     
-    HOST_IP = os.getenv("HOST_IP")
-    if HOST_IP is None:
-        logger.error("Host IP not found in environment variables.")
+    MINECRAFT_HOST_IP = os.getenv("MINECRAFT_HOST_IP")
+    if MINECRAFT_HOST_IP is None:
+        logger.error("Minecraft Host IP not found in environment variables.")
+        return
+
+    MINECRAFT_PORT = os.getenv("MINECRAFT_PORT")
+    if MINECRAFT_PORT is None:
+        logger.error("Minecraft Port not found in environment variables.")
+        return
+    try:
+        MINECRAFT_PORT = int(MINECRAFT_PORT)
+    except ValueError:
+        logger.error("Minecraft Port must be an integer.")
+        return
+
+    VALHEIM_HOST_IP = os.getenv("VALHEIM_HOST_IP")
+    if VALHEIM_HOST_IP is None:
+        logger.error("Valheim Host IP not found in environment variables.")
+        return
+
+    VALHEIM_PORT = os.getenv("VALHEIM_PORT")
+    if VALHEIM_PORT is None:
+        logger.error("Valheim Port not found in environment variables.")
+        return
+    try:
+        VALHEIM_PORT = int(VALHEIM_PORT)
+    except ValueError:
+        logger.error("Valheim Port must be an integer.")
         return
 
     
@@ -64,7 +89,7 @@ def main() -> None:
 
     async def check_valheim_server_status() -> discord.Embed:
             try:
-                info = await a2s.ainfo(("192.168.178.56", 2457), timeout=3.0)  # type: ignore
+                info = await a2s.ainfo((VALHEIM_HOST_IP, VALHEIM_PORT), timeout=3.0)  # type: ignore
 
                 embed = discord.Embed(
                     title="⚔️ Valheim Server Status",
@@ -88,7 +113,7 @@ def main() -> None:
             return embed
 
     async def check_mc_server_status() -> discord.Embed:
-            server = JavaServer(HOST_IP)
+            server = JavaServer(MINECRAFT_HOST_IP, MINECRAFT_PORT)
             try:
                 status = await server.async_status()
 
