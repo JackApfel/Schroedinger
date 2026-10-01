@@ -8,7 +8,7 @@ Ein kleiner Discord-Bot zum Überprüfen von Server-Status.
 
 ## Requirements
 
-- Python >=3.14.7
+- Python >=3.14
 - [uv](https://docs.astral.sh/uv/)
 
 ## Installation
@@ -19,7 +19,7 @@ Ein kleiner Discord-Bot zum Überprüfen von Server-Status.
 git clone https://github.com/JackApfel/Schroedinger.git
 cd Schroedinger
 uv sync
-````
+```
 
 ### Configuration
 
