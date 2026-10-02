@@ -4,6 +4,7 @@ from typing import Literal
 
 import discord
 
+from ..models.server_status import MinecraftServerStatus, ValheimServerStatus
 from ..server.minecraft import check_mc_server_status
 from ..server.valheim import check_valheim_server_status
 
@@ -33,10 +34,75 @@ def create_server_embed(server_status, title: str) -> discord.Embed:
         inline=True,
     )
     embed.add_field(
-        name="🧩 Version",
+        name="🏷️ Version",
         value=f"{server_status.version}",
         inline=True,
     )
+
+    return embed
+
+
+def create_minecraft_server_embed(
+    server_status: MinecraftServerStatus, title: str
+) -> discord.Embed:
+
+    embed = create_server_embed(server_status, title)
+
+    embed.add_field(
+        name="🧱 Modded",
+        value="Ja" if server_status.is_modded else "Nein",
+        inline=True,
+    )
+    embed.add_field(
+        name="🔐 Secure Chat",
+        value="Aktiv" if server_status.enforces_secure_chat else "Inaktiv",
+        inline=True,
+    )
+    if server_status.is_modded:
+        embed.add_field(
+            name="📦 Modpack",
+            value=f"{server_status.modpack['name']}",  # type: ignore
+            inline=True,
+        )
+        embed.add_field(
+            name="🏷️ Modpack-Version",
+            value=f"{server_status.modpack['version']}",  # type: ignore
+            inline=True,
+        )
+    return embed
+
+
+def create_valheim_server_embed(
+    server_status: ValheimServerStatus, title: str
+) -> discord.Embed:
+
+    embed = create_server_embed(server_status, title)
+
+    embed.add_field(
+        name="🗺️ Welt",
+        value=server_status.map_name,
+        inline=True,
+    )
+    embed.add_field(
+        name="🔒 Passwort",
+        value="Erforderlich"
+        if server_status.password_protected
+        else "Nicht erforderlich",
+        inline=True,
+    )
+    embed.add_field(
+        name="🛡️ VAC",
+        value="Aktiv" if server_status.vac_enabled else "Inaktiv",
+        inline=True,
+    )
+    # embed.add_field(
+    #     name="🔌 Port",
+    #     value=str(server_status.port)
+    #     if server_status.port is not None
+    #     else "Unbekannt",
+    #     inline=True,
+    # )
+
     return embed
 
 
@@ -54,24 +120,29 @@ def register_status_command(client) -> None:
             )
             embeds.extend(
                 [
-                    create_server_embed(minecraft_status, "⛏️ Minecraft Server Status"),
-                    create_server_embed(valheim_status, "⚔️ Valheim Server Status"),
+                    create_minecraft_server_embed(
+                        minecraft_status, "⛏️ Minecraft Server Status"
+                    ),
+                    create_valheim_server_embed(
+                        valheim_status, "⚔️ Valheim Server Status"
+                    ),
                 ]
             )
 
         if game == "Minecraft":
             mc_server_status = await check_mc_server_status()
-
             logger.info("Minecraft status command executed")
             embeds.append(
-                create_server_embed(mc_server_status, "⛏️ Minecraft Server Status")
+                create_minecraft_server_embed(
+                    mc_server_status, "⛏️ Minecraft Server Status"
+                )
             )
 
         if game == "Valheim":
             logger.info("Checking Valheim server status...")
             vh_server_status = await check_valheim_server_status()
             embeds.append(
-                create_server_embed(vh_server_status, "⚔️ Valheim Server Status")
+                create_valheim_server_embed(vh_server_status, "⚔️ Valheim Server Status")
             )
             logger.info("Valheim status command executed")
 

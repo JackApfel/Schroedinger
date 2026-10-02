@@ -2,7 +2,7 @@
 
 Ein kleiner Discord-Bot zum Überprüfen von Server-Status.
 
-![Abbildung vom /status all Befehl](image-1.png)
+![Abbildung vom /status all Befehl](image.png)
 
 ---
 
@@ -24,10 +24,10 @@ uv sync
 ### Configuration
 
 Erstelle und konfiguriere eine `.env` im Projektverzeichnis.
-`.env_example` dient als Vorlage.
+`.env.example` dient als Vorlage.
 
 ```bash
-cp .env_example .env
+cp .env.example .env
 ```
 
 ```env
