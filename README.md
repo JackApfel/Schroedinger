@@ -2,7 +2,7 @@
 
 Ein kleiner Discord-Bot zum Überprüfen von Server-Status.
 
-![Abbildung vom /status all Befehl](image.png)
+![Abbildung vom /status all Befehl](image-1.png)
 
 ---
 
