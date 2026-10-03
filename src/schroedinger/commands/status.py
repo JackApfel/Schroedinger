@@ -58,15 +58,15 @@ def create_minecraft_server_embed(
         value="Aktiv" if server_status.enforces_secure_chat else "Inaktiv",
         inline=True,
     )
-    if server_status.is_modded:
+    if server_status.is_modded and server_status.modpack:
         embed.add_field(
             name="📦 Modpack",
-            value=f"{server_status.modpack['name']}",  # type: ignore
+            value=f"{server_status.modpack.name}",
             inline=True,
         )
         embed.add_field(
             name="🏷️ Modpack-Version",
-            value=f"{server_status.modpack['version']}",  # type: ignore
+            value=f"{server_status.modpack.version}",
             inline=True,
         )
     return embed

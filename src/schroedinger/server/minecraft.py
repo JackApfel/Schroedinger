@@ -3,7 +3,7 @@ import logging
 from mcstatus import JavaServer
 
 from ..config import MINECRAFT_HOST_IP, MINECRAFT_PORT
-from ..models.server_status import MinecraftServerStatus
+from ..models.server_status import MinecraftModpack, MinecraftServerStatus
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +13,15 @@ async def check_mc_server_status() -> MinecraftServerStatus:
     try:
         status = await server.async_status()
 
+        better_status = status.raw.get("betterStatus")
+        modpack = (
+            MinecraftModpack(
+                name=better_status["name"],
+                version=better_status["version"],
+            )
+            if better_status
+            else None
+        )
         return MinecraftServerStatus(
             description=status.description,
             online=True,
@@ -21,7 +30,7 @@ async def check_mc_server_status() -> MinecraftServerStatus:
             latency=status.latency,
             version=status.version.name,
             is_modded=status.raw.get("isModded", False),
-            modpack=status.raw.get("betterStatus"),
+            modpack=modpack,
             enforces_secure_chat=status.raw.get("enforcesSecureChat"),
             prevents_chat_reports=status.raw.get("preventsChatReports"),
             protocol_version=status.version.protocol,
