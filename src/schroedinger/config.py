@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+
 import dotenv
 
 logger = logging.getLogger(__name__)
@@ -43,4 +44,20 @@ try:
     VALHEIM_PORT = int(VALHEIM_PORT)
 except ValueError:
     logger.error("Valheim Port must be an integer.")
+    sys.exit(1)
+
+HYTALE_HOST_IP = os.getenv("HYTALE_HOST_IP")
+if HYTALE_HOST_IP is None:
+    logger.error("Hytale Host IP not found in environment variables.")
+    sys.exit(1)
+
+HYTALE_PORT = os.getenv("HYTALE_PORT")
+if HYTALE_PORT is None:
+    logger.error("Hytale Port not found in environment variables.")
+    sys.exit(1)
+
+try:
+    HYTALE_PORT = int(HYTALE_PORT)
+except ValueError:
+    logger.error("Hytale Port must be an integer.")
     sys.exit(1)

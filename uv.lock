@@ -430,6 +430,7 @@ name = "schroedinger"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "aiohttp" },
     { name = "discord-py" },
     { name = "dotenv" },
     { name = "mcstatus" },
@@ -438,6 +439,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "aiohttp", specifier = ">=3.14.3" },
     { name = "discord-py", specifier = ">=2.7.1" },
     { name = "dotenv", specifier = ">=0.9.9" },
     { name = "mcstatus", specifier = ">=14.2.0" },

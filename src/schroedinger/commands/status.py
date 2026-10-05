@@ -5,6 +5,7 @@ from typing import Literal
 import discord
 
 from ..models.server_status import MinecraftServerStatus, ValheimServerStatus
+from ..server.hytale import check_hytale_server_status
 from ..server.minecraft import check_mc_server_status
 from ..server.valheim import check_valheim_server_status
 
@@ -109,14 +110,17 @@ def create_valheim_server_embed(
 def register_status_command(client) -> None:
     @client.tree.command(name="status", description="Check server status")
     async def status(
-        interaction: discord.Interaction, game: Literal["all", "Minecraft", "Valheim"]
+        interaction: discord.Interaction,
+        game: Literal["all", "Minecraft", "Valheim", "Hytale"],
     ):
         await interaction.response.defer()
         embeds = []
 
         if game == "all":
-            valheim_status, minecraft_status = await asyncio.gather(
-                check_valheim_server_status(), check_mc_server_status()
+            valheim_status, minecraft_status, hytale_status = await asyncio.gather(
+                check_valheim_server_status(),
+                check_mc_server_status(),
+                check_hytale_server_status(),
             )
             embeds.extend(
                 [
@@ -126,6 +130,7 @@ def register_status_command(client) -> None:
                     create_valheim_server_embed(
                         valheim_status, "⚔️ Valheim Server Status"
                     ),
+                    create_server_embed(hytale_status, "Hytale Server Status"),
                 ]
             )
 
@@ -145,6 +150,11 @@ def register_status_command(client) -> None:
                 create_valheim_server_embed(vh_server_status, "⚔️ Valheim Server Status")
             )
             logger.info("Valheim status command executed")
+
+        if game == "Hytale":
+            logger.info("Checking Hytale server status...")
+            ht_server_status = await check_hytale_server_status()
+            embeds.append(create_server_embed(ht_server_status, "Hytale Server Status"))
 
         logger.info("Anzahl Embeds: %s", len(embeds))
         logger.info("Embed-Titel: %s", [embed.title for embed in embeds])
