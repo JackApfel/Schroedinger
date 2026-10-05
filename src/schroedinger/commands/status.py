@@ -4,7 +4,12 @@ from typing import Literal
 
 import discord
 
-from ..models.server_status import MinecraftServerStatus, ValheimServerStatus
+from ..models.server_status import (
+    HytaleServerStatus,
+    MinecraftServerStatus,
+    ServerStatus,
+    ValheimServerStatus,
+)
 from ..server.hytale import check_hytale_server_status
 from ..server.minecraft import check_mc_server_status
 from ..server.valheim import check_valheim_server_status
@@ -12,31 +17,54 @@ from ..server.valheim import check_valheim_server_status
 logger = logging.getLogger(__name__)
 
 
-def create_server_embed(server_status, title: str) -> discord.Embed:
+def format_bool(value: bool | None, true_label: str, false_label: str) -> str:
+    if value is None:
+        return "Unbekannt"
+    return true_label if value else false_label
+
+
+def create_server_embed(server_status: ServerStatus, title: str) -> discord.Embed:
     online = server_status.online
     embed = discord.Embed(
         title=title,
-        description=f"**{server_status.description}**",
-        color=discord.Color.green() if online else discord.Color.red(),
+        description=f"**{server_status.description}**"
+        if server_status.description
+        else "Unknown",
+        color=(
+            discord.Color.green()
+            if online is True
+            else discord.Color.red()
+            if online is False
+            else discord.Color.greyple()
+        ),
     )
     embed.add_field(
         name="🟢 Status",
-        value="Online" if online else "Offline",
+        value=format_bool(online, "Online", "Offline"),
         inline=True,
     )
     embed.add_field(
         name="👥 Spieler",
-        value=f"{server_status.players} / {server_status.max_players}",
+        value=(
+            f"{server_status.players} / {server_status.max_players}"
+            if server_status.players is not None
+            and server_status.max_players is not None
+            else "Unbekannt"
+        ),
         inline=True,
     )
     embed.add_field(
         name="📡 Ping",
-        value=f"{server_status.latency:.0f} ms",
+        value=(
+            f"{server_status.latency:.0f} ms"
+            if server_status.latency is not None
+            else "Unbekannt"
+        ),
         inline=True,
     )
     embed.add_field(
         name="🏷️ Version",
-        value=f"{server_status.version}",
+        value=server_status.version or "Unbekannt",
         inline=True,
     )
 
@@ -51,12 +79,12 @@ def create_minecraft_server_embed(
 
     embed.add_field(
         name="🧱 Modded",
-        value="Ja" if server_status.is_modded else "Nein",
+        value=format_bool(server_status.is_modded, "Ja", "Nein"),
         inline=True,
     )
     embed.add_field(
         name="🔐 Secure Chat",
-        value="Aktiv" if server_status.enforces_secure_chat else "Inaktiv",
+        value=format_bool(server_status.enforces_secure_chat, "Aktiv", "Inaktiv"),
         inline=True,
     )
     if server_status.is_modded and server_status.modpack:
@@ -81,19 +109,21 @@ def create_valheim_server_embed(
 
     embed.add_field(
         name="🗺️ Welt",
-        value=server_status.map_name,
+        value=server_status.map_name or "Unbekannt",
         inline=True,
     )
     embed.add_field(
         name="🔒 Passwort",
-        value="Erforderlich"
-        if server_status.password_protected
-        else "Nicht erforderlich",
+        value=format_bool(
+            server_status.password_protected,
+            "Erforderlich",
+            "Nicht erforderlich",
+        ),
         inline=True,
     )
     embed.add_field(
         name="🛡️ VAC",
-        value="Aktiv" if server_status.vac_enabled else "Inaktiv",
+        value=format_bool(server_status.vac_enabled, "Aktiv", "Inaktiv"),
         inline=True,
     )
     # embed.add_field(
@@ -101,6 +131,20 @@ def create_valheim_server_embed(
     #     value=str(server_status.port)
     #     if server_status.port is not None
     #     else "Unbekannt",
+    #     inline=True,
+    # )
+
+    return embed
+
+
+def create_hytale_server_embed(
+    server_status: HytaleServerStatus, title: str
+) -> discord.Embed:
+    embed = create_server_embed(server_status, title)
+
+    # embed.add_field(
+    #     name="🗺️ Welt",
+    #     value=server_status.default_world or "Unbekannt",
     #     inline=True,
     # )
 
@@ -130,7 +174,7 @@ def register_status_command(client) -> None:
                     create_valheim_server_embed(
                         valheim_status, "⚔️ Valheim Server Status"
                     ),
-                    create_server_embed(hytale_status, "Hytale Server Status"),
+                    create_hytale_server_embed(hytale_status, "🗡️ Hytale Server Status"),
                 ]
             )
 
@@ -154,7 +198,9 @@ def register_status_command(client) -> None:
         if game == "Hytale":
             logger.info("Checking Hytale server status...")
             ht_server_status = await check_hytale_server_status()
-            embeds.append(create_server_embed(ht_server_status, "Hytale Server Status"))
+            embeds.append(
+                create_hytale_server_embed(ht_server_status, "Hytale Server Status")
+            )
 
         logger.info("Anzahl Embeds: %s", len(embeds))
         logger.info("Embed-Titel: %s", [embed.title for embed in embeds])

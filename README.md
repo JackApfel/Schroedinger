@@ -38,6 +38,9 @@ MINECRAFT_PORT=Port vom Minecraft Server
 
 VALHEIM_HOST_IP=IP vom Valheim Server
 VALHEIM_PORT=Port vom Valheim Server
+
+HYTALE_HOST_IP=IP vom Hytale Server
+HYTALE_PORT=Port vom Hytale Server
 ```
 
 ### Ausführen

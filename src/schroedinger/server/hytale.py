@@ -4,12 +4,12 @@ import aiohttp
 from aiohttp import ClientTimeout
 
 from ..config import HYTALE_HOST_IP, HYTALE_PORT
-from ..models.server_status import ServerStatus
+from ..models.server_status import HytaleServerStatus
 
 logger = logging.getLogger(__name__)
 
 
-async def check_hytale_server_status() -> ServerStatus:
+async def check_hytale_server_status() -> HytaleServerStatus:
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(
@@ -23,23 +23,26 @@ async def check_hytale_server_status() -> ServerStatus:
                 version = data["Server"]["Version"]
                 name = data["Server"]["Name"]
                 current_players = data["Universe"]["CurrentPlayers"]
+                default_world = data["Universe"]["DefaultWorld"]
 
-                return ServerStatus(
+                return HytaleServerStatus(
                     description=name,
                     online=True,
                     players=current_players,
                     max_players=max_players,
-                    latency=0,  # TODO
+                    latency=None,  # TODO
                     version=version,
+                    default_world=default_world,
                 )
 
     except Exception as error:
         logger.error("Server nicht erreichbar: %s", error)
-        return ServerStatus(
-            description="Unknown",
+        return HytaleServerStatus(
+            description=None,
             online=False,
-            players=0,
-            max_players=0,
-            latency=0,
-            version="Unknown",
+            players=None,
+            max_players=None,
+            latency=None,
+            version=None,
+            default_world=None,
         )
