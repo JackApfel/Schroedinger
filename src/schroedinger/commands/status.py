@@ -199,7 +199,7 @@ def register_status_command(client) -> None:
             logger.info("Checking Hytale server status...")
             ht_server_status = await check_hytale_server_status()
             embeds.append(
-                create_hytale_server_embed(ht_server_status, "Hytale Server Status")
+                create_hytale_server_embed(ht_server_status, "🗡️ Hytale Server Status")
             )
 
         logger.info("Anzahl Embeds: %s", len(embeds))
