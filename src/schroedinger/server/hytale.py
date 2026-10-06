@@ -1,4 +1,5 @@
 import logging
+import time
 
 import aiohttp
 from aiohttp import ClientTimeout
@@ -11,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 async def check_hytale_server_status(config: Config) -> HytaleServerStatus:
     try:
+        start_time = time.perf_counter()
         async with (
             aiohttp.ClientSession() as session,
             session.get(
@@ -21,6 +23,9 @@ async def check_hytale_server_status(config: Config) -> HytaleServerStatus:
         ):
             response.raise_for_status()
             data = await response.json()
+
+            end_time = time.perf_counter()
+            latency = (end_time - start_time) * 1000
             max_players = data["Server"]["MaxPlayers"]
             version = data["Server"]["Version"]
             name = data["Server"]["Name"]
@@ -32,7 +37,7 @@ async def check_hytale_server_status(config: Config) -> HytaleServerStatus:
                 online=True,
                 players=current_players,
                 max_players=max_players,
-                latency=None,  # TODO
+                latency=latency,
                 version=version,
                 default_world=default_world,
             )
