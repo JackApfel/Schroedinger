@@ -2,15 +2,17 @@ import logging
 
 import a2s
 
-from ..config import VALHEIM_HOST_IP, VALHEIM_PORT
+from ..config import Config
 from ..models.server_status import ValheimServerStatus
 
 logger = logging.getLogger(__name__)
 
 
-async def check_valheim_server_status() -> ValheimServerStatus:
+async def check_valheim_server_status(config: Config) -> ValheimServerStatus:
     try:
-        info = await a2s.ainfo((VALHEIM_HOST_IP, VALHEIM_PORT), timeout=3.0)  # type: ignore
+        info = await a2s.ainfo(
+            (config.valheim_host_ip, config.valheim_port), timeout=3.0
+        )  # type: ignore
 
         logger.info(info)
 

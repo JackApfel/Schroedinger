@@ -2,14 +2,14 @@ import logging
 
 from mcstatus import JavaServer
 
-from ..config import MINECRAFT_HOST_IP, MINECRAFT_PORT
+from ..config import Config
 from ..models.server_status import MinecraftModpack, MinecraftServerStatus
 
 logger = logging.getLogger(__name__)
 
 
-async def check_mc_server_status() -> MinecraftServerStatus:
-    server = JavaServer(MINECRAFT_HOST_IP, MINECRAFT_PORT)  # type: ignore
+async def check_mc_server_status(config: Config) -> MinecraftServerStatus:
+    server = JavaServer(config.minecraft_host_ip, config.minecraft_port)
     try:
         status = await server.async_status()
 

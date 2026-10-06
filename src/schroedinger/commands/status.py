@@ -4,6 +4,7 @@ from typing import Literal
 
 import discord
 
+from ..config import Config
 from ..models.server_status import (
     HytaleServerStatus,
     MinecraftServerStatus,
@@ -151,7 +152,7 @@ def create_hytale_server_embed(
     return embed
 
 
-def register_status_command(client) -> None:
+def register_status_command(config: Config, client) -> None:
     @client.tree.command(name="status", description="Check server status")
     async def status(
         interaction: discord.Interaction,
@@ -162,9 +163,9 @@ def register_status_command(client) -> None:
 
         if game == "all":
             valheim_status, minecraft_status, hytale_status = await asyncio.gather(
-                check_valheim_server_status(),
-                check_mc_server_status(),
-                check_hytale_server_status(),
+                check_valheim_server_status(config),
+                check_mc_server_status(config),
+                check_hytale_server_status(config),
             )
             embeds.extend(
                 [
@@ -179,7 +180,7 @@ def register_status_command(client) -> None:
             )
 
         if game == "Minecraft":
-            mc_server_status = await check_mc_server_status()
+            mc_server_status = await check_mc_server_status(config)
             logger.info("Minecraft status command executed")
             embeds.append(
                 create_minecraft_server_embed(
@@ -189,7 +190,7 @@ def register_status_command(client) -> None:
 
         if game == "Valheim":
             logger.info("Checking Valheim server status...")
-            vh_server_status = await check_valheim_server_status()
+            vh_server_status = await check_valheim_server_status(config)
             embeds.append(
                 create_valheim_server_embed(vh_server_status, "⚔️ Valheim Server Status")
             )
@@ -197,7 +198,7 @@ def register_status_command(client) -> None:
 
         if game == "Hytale":
             logger.info("Checking Hytale server status...")
-            ht_server_status = await check_hytale_server_status()
+            ht_server_status = await check_hytale_server_status(config)
             embeds.append(
                 create_hytale_server_embed(ht_server_status, "🗡️ Hytale Server Status")
             )

@@ -1,6 +1,6 @@
 import logging
 import os
-import sys
+from dataclasses import dataclass
 
 import dotenv
 
@@ -9,55 +9,42 @@ logger = logging.getLogger(__name__)
 dotenv.load_dotenv()
 
 
-TOKEN = os.getenv("TOKEN")
-if TOKEN is None:
-    logger.error("Discord Token not found in environment variables.")
-    sys.exit(1)
+@dataclass
+class Config:
+    token: str
+    minecraft_host_ip: str
+    minecraft_port: int
+    valheim_host_ip: str
+    valheim_port: int
+    hytale_host_ip: str
+    hytale_port: int
 
-MINECRAFT_HOST_IP = os.getenv("MINECRAFT_HOST_IP")
-if MINECRAFT_HOST_IP is None:
-    logger.error("Minecraft Host IP not found in environment variables.")
-    sys.exit(1)
 
-MINECRAFT_PORT = os.getenv("MINECRAFT_PORT")
-if MINECRAFT_PORT is None:
-    logger.error("Minecraft Port not found in environment variables.")
-    sys.exit(1)
+def _required(name: str, label: str) -> str:
+    value = os.getenv(name)
 
-try:
-    MINECRAFT_PORT = int(MINECRAFT_PORT)
-except ValueError:
-    logger.error("Minecraft Port must be an integer.")
-    sys.exit(1)
+    if value is None:
+        raise ValueError(f"{label} not found in environment variables.")
 
-VALHEIM_HOST_IP = os.getenv("VALHEIM_HOST_IP")
-if VALHEIM_HOST_IP is None:
-    logger.error("Valheim Host IP not found in environment variables.")
-    sys.exit(1)
+    return value
 
-VALHEIM_PORT = os.getenv("VALHEIM_PORT")
-if VALHEIM_PORT is None:
-    logger.error("Valheim Port not found in environment variables.")
-    sys.exit(1)
 
-try:
-    VALHEIM_PORT = int(VALHEIM_PORT)
-except ValueError:
-    logger.error("Valheim Port must be an integer.")
-    sys.exit(1)
+def _port(name: str, label: str) -> int:
+    value = _required(name, label)
 
-HYTALE_HOST_IP = os.getenv("HYTALE_HOST_IP")
-if HYTALE_HOST_IP is None:
-    logger.error("Hytale Host IP not found in environment variables.")
-    sys.exit(1)
+    try:
+        return int(value)
+    except ValueError as error:
+        raise ValueError(f"{label} must be an integer.") from error
 
-HYTALE_PORT = os.getenv("HYTALE_PORT")
-if HYTALE_PORT is None:
-    logger.error("Hytale Port not found in environment variables.")
-    sys.exit(1)
 
-try:
-    HYTALE_PORT = int(HYTALE_PORT)
-except ValueError:
-    logger.error("Hytale Port must be an integer.")
-    sys.exit(1)
+def load_config() -> Config:
+    return Config(
+        token=_required("TOKEN", "Discord Token"),
+        minecraft_host_ip=_required("MINECRAFT_HOST_IP", "Minecraft Host IP"),
+        minecraft_port=_port("MINECRAFT_PORT", "Minecraft Port"),
+        valheim_host_ip=_required("VALHEIM_HOST_IP", "Valheim Host IP"),
+        valheim_port=_port("VALHEIM_PORT", "Valheim Port"),
+        hytale_host_ip=_required("HYTALE_HOST_IP", "Hytale Host IP"),
+        hytale_port=_port("HYTALE_PORT", "Hytale Port"),
+    )

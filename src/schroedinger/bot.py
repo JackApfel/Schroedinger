@@ -5,7 +5,7 @@ import discord
 from discord.ext import commands
 
 from schroedinger.commands.status import register_status_command
-from schroedinger.config import TOKEN
+from schroedinger.config import load_config
 
 from .logger import logger
 
@@ -38,7 +38,9 @@ def main() -> None:
 
     logger.info("Bot.py main called")
 
-    register_status_command(client)
+    config = load_config()
+
+    register_status_command(config=config, client=client)
 
     @client.event
     async def on_ready():
@@ -46,5 +48,4 @@ def main() -> None:
         await client.tree.sync()
         logger.info("Slash-Commands erfolgreich synchronisiert!")
 
-    if TOKEN is not None:
-        client.run(TOKEN, log_handler=None)
+    client.run(config.token, log_handler=None)
