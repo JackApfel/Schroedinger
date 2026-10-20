@@ -152,6 +152,20 @@ def create_hytale_server_embed(
     return embed
 
 
+async def fetch_status_embeds(config: Config) -> list[discord.Embed]:
+    valheim_status, minecraft_status, hytale_status = await asyncio.gather(
+        check_valheim_server_status(config),
+        check_mc_server_status(config),
+        check_hytale_server_status(config),
+    )
+
+    return [
+        create_minecraft_server_embed(minecraft_status, "⛏️ Minecraft Server Status"),
+        create_valheim_server_embed(valheim_status, "⚔️ Valheim Server Status"),
+        create_hytale_server_embed(hytale_status, "🗡️ Hytale Server Status"),
+    ]
+
+
 def register_status_command(config: Config, client) -> None:
     @client.tree.command(name="status", description="Check server status")
     async def status(
@@ -162,22 +176,7 @@ def register_status_command(config: Config, client) -> None:
         embeds = []
 
         if game == "all":
-            valheim_status, minecraft_status, hytale_status = await asyncio.gather(
-                check_valheim_server_status(config),
-                check_mc_server_status(config),
-                check_hytale_server_status(config),
-            )
-            embeds.extend(
-                [
-                    create_minecraft_server_embed(
-                        minecraft_status, "⛏️ Minecraft Server Status"
-                    ),
-                    create_valheim_server_embed(
-                        valheim_status, "⚔️ Valheim Server Status"
-                    ),
-                    create_hytale_server_embed(hytale_status, "🗡️ Hytale Server Status"),
-                ]
-            )
+            embeds.extend(await fetch_status_embeds(config))
 
         if game == "Minecraft":
             mc_server_status = await check_mc_server_status(config)
