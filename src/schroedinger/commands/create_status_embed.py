@@ -77,6 +77,16 @@ async def restore_status_messages(
             )
             continue
 
+        if client.user is None:
+            return
+
+        if message.author.id != client.user.id:
+            logger.warning(
+                "Status-Nachricht %s gehört nicht zum aktuellen Bot.",
+                message_id,
+            )
+            continue
+
         status_messages[guild_id] = message
 
 
