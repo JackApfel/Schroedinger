@@ -3,8 +3,9 @@ import logging
 import discord
 from discord.ext import commands
 
-from schroedinger.commands.create_status_channel import (
+from schroedinger.commands.create_status_embed import (
     register_create_status_embed_command,
+    restore_status_messages,
     update_embeds,
 )
 from schroedinger.commands.status import register_status_command
@@ -38,8 +39,10 @@ def main() -> None:
 
         await client.tree.sync()
 
-        logger.info("Slash-Commands erfolgreich synchronisiert!")
+        await restore_status_messages(client=client)
         if not update_embeds.is_running():
             update_embeds.start(config)
+
+        logger.info("Slash-Commands erfolgreich synchronisiert!")
 
     client.run(config.token, log_handler=None)
