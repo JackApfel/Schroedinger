@@ -122,7 +122,7 @@ def register_create_status_embed_command(
         save_status_message(guild_id, message)
 
 
-@tasks.loop(seconds=120)
+@tasks.loop(seconds=10)
 async def update_embeds(config: Config) -> None:
     if not status_messages:
         return
@@ -130,4 +130,7 @@ async def update_embeds(config: Config) -> None:
     embeds = await fetch_status_embeds(config)
 
     for guild_id, message in status_messages.items():
-        await message.edit(embeds=embeds)
+        try:
+            await message.edit(embeds=embeds)
+        except discord.errors.NotFound as error:
+            logger.error("Message not found! %s", error)
