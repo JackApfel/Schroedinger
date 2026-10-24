@@ -24,7 +24,7 @@ async def check_hytale_server_status(config: Config) -> HytaleServerStatus:
             response.raise_for_status()
             data = await response.json()
 
-            print(f"\n\n{data}\n\n")
+            # print(f"\n\n{data}\n\n")
 
             end_time = time.perf_counter()
             latency = (end_time - start_time) * 1000

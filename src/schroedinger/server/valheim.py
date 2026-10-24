@@ -14,7 +14,7 @@ async def check_valheim_server_status(config: Config) -> ValheimServerStatus:
             (config.valheim_host_ip, config.valheim_port), timeout=3.0
         )  # type: ignore
 
-        logger.info(info)
+        # logger.info(info)
 
         return ValheimServerStatus(
             description=info.server_name,

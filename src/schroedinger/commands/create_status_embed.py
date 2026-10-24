@@ -129,7 +129,7 @@ async def update_embeds(config: Config) -> None:
 
     embeds = await fetch_status_embeds(config)
 
-    for guild_id, message in status_messages.items():
+    for guild_id, message in list(status_messages.items()):
         try:
             await message.edit(embeds=embeds)
         except discord.errors.NotFound as error:
